@@ -1,5 +1,8 @@
 const express = require('express');
 const { google } = require('googleapis');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const apiKey = process.env.API_KEY;
 const spreadsheetId = process.env.SPREADSHEET_ID;
@@ -17,34 +20,48 @@ async function fetchSpreadsheetData() {
 
     const values = response.data.values;
 
-    const jsonData = values.map((row) => {
-      return {
-        "Produto": row[0],
-        "Pronta Entrega": row[1],
-        "Encomenda 1": row[2],
-        "Encomenda 2": row[3],
-        // Add more columns as needed
-      };
+    const productData = {};
+
+    values.forEach((row) => {
+      const productName = row[0];
+
+      if (
+        productName &&
+        productName !== 'Apple Watch aço ou com pulseiras especiais só orçar pelo WhatsApp.' &&
+        productName !== 'Apple Watchs series 7 GPS + CEL, de aço ou titanium chama no WhatsApp que orçamos' &&
+        productName !== 'Se precisar de outra configuração personalizada só chamar no WhatsApp'
+      ) {
+        const productInfo = {
+          "Pronta Entrega": row[1],
+          "Encomenda 1": row[2],
+          "Encomenda 2": row[3],
+        };
+
+        if (!productData[productName]) {
+          productData[productName] = [];
+        }
+
+        productData[productName].push(productInfo);
+      }
     });
 
-    return jsonData;
+    return productData;
   } catch (error) {
     console.error('Error fetching Google Spreadsheet data:', error);
     throw error;
   }
 }
 
-app.get('/data', async (req, res) => {
+app.get('/', async (req, res) => {
   try {
-    const jsonData = await fetchSpreadsheetData();
+    const productData = await fetchSpreadsheetData();
 
-    res.json(jsonData);
+    res.json(productData);
   } catch (error) {
     res.status(500).json({ error: 'An error occurred while fetching data.' });
   }
 });
 
-// Use the dynamic port provided by Render
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
