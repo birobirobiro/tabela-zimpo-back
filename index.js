@@ -1,6 +1,7 @@
 const express = require('express');
 const { google } = require('googleapis');
 const dotenv = require('dotenv');
+const { v4: uuidv4 } = require('uuid');
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ async function fetchSpreadsheetData() {
         productName !== 'Se precisar de outra configuração personalizada só chamar no WhatsApp'
       ) {
         const productInfo = {
+          "ID": uuidv4(),
           "Pronta Entrega": row[1],
           "Encomenda 1": row[2],
           "Encomenda 2": row[3],
@@ -62,7 +64,7 @@ app.get('/', async (req, res) => {
   }
 });
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
